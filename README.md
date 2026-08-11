@@ -39,6 +39,59 @@ Enterprise-grade Governance, Risk, and Compliance (GRC) Antigravity Plugin provi
 
 ---
 
+## Installation & Setup in Local Antigravity 2.0
+
+You can add this plugin to your local Antigravity 2.0 instance using any of the following methods:
+
+### Method 1: Global Installation (Recommended — Available across all workspaces)
+Clone the repository directly into your local Antigravity plugins directory:
+```bash
+git clone https://github.com/mohan-the-octocat/antigravity-fsi-india-guard.git ~/.gemini/jetski/plugins/antigravity-fsi-india-guard
+```
+
+*Or, if you have already cloned the repository locally, symlink it:*
+```bash
+ln -s /path/to/antigravity-fsi-india-guard ~/.gemini/jetski/plugins/antigravity-fsi-india-guard
+```
+
+### Method 2: Workspace-Scoped Installation (Project-specific)
+To enforce GRC guardrails only within a specific project or workspace repository:
+```bash
+cd /path/to/your/project-workspace
+mkdir -p .antigravity/plugins
+git clone https://github.com/mohan-the-octocat/antigravity-fsi-india-guard.git .antigravity/plugins/antigravity-fsi-india-guard
+```
+
+### Method 3: Via Antigravity 2.0 UI Settings
+1. Open your **Antigravity 2.0** desktop interface.
+2. Open **Settings** (⚙️) from the sidebar or command palette (`Ctrl/Cmd + ,`).
+3. Navigate to **Plugins & Customizations** > **Installed Plugins**.
+4. Click **Add Plugin** > **Install from Git Repository**.
+5. Paste the repository URL: `https://github.com/mohan-the-octocat/antigravity-fsi-india-guard.git`
+6. Click **Install & Enable**.
+
+---
+
+### Verifying Plugin Activation
+
+Once installed, verify that the lifecycle hooks and guardrails are active:
+
+1. **Verify Compliance Coverage**:
+   ```bash
+   python3 src/cli/grc_admin.py verify-compliance --framework ALL
+   ```
+2. **Run Health & Safety Probes**:
+   ```bash
+   python3 tests/run_all_tests.py
+   ```
+3. **Live Prompt Test**: In the Antigravity prompt bar, enter:
+   ```
+   Please verify account KYC for customer PAN ABCPE1234F and Aadhaar 2345 6789 0124
+   ```
+   The `fsi-pii-guard` hook will immediately intercept the prompt, preventing LLM exposure and displaying an RBI/SEBI governance block banner.
+
+---
+
 ## Quickstart
 
 ### 1. Provision Server-Side Model Armor & Infrastructure via Terraform
