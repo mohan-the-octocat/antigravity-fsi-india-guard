@@ -37,38 +37,38 @@ The plugin is structured into four decoupled, high-performance sub-systems:
 
 ```mermaid
 graph TD
-    subgraph Antigravity Engine
-        A[User Input / Prompt] --> B[PreInvocation Hook Event]
-        M[Model Tool Call Plan] --> N[PreToolUse Hook Event]
+    subgraph AntigravityEngine ["Antigravity Engine"]
+        A["User Input / Prompt"] --> B["PreInvocation Hook Event"]
+        M["Model Tool Call Plan"] --> N["PreToolUse Hook Event"]
     end
 
-    subgraph Fast-Path Stage 1: PII Guard (<1ms)
-        B --> C[PII Detector Engine]
+    subgraph FastPath ["Fast-Path Stage 1: PII Guard (Latency: under 1ms)"]
+        B --> C["PII Detector Engine"]
         N --> C
-        C --> D{Indian PII Regex & Algorithmic Validation}
-        D -->|Verhoeff D5 Check| E[UIDAI Aadhaar 12-Digit]
-        D -->|Entity & Mod Check| F[Income Tax PAN]
-        D -->|Mod 36 Check| G[GSTIN 15-Char]
-        D -->|Luhn Mod-10 Check| H[Payment Card / RuPay]
-        D -->|Contextual Grammar| I[Bank A/C, IFSC, UPI VPA]
+        C --> D{"Indian PII Regex & Algorithmic Validation"}
+        D -->|Verhoeff D5 Check| E["UIDAI Aadhaar (12-Digit)"]
+        D -->|Entity & Mod Check| F["Income Tax PAN"]
+        D -->|Mod 36 Check| G["GSTIN (15-Char)"]
+        D -->|Luhn Mod-10 Check| H["Payment Card / RuPay"]
+        D -->|Contextual Grammar| I["Bank A/C, IFSC, UPI VPA"]
     end
 
-    subgraph Deep-Path Stage 2: Google Cloud Model Armor (~15-40ms)
-        D -->|PII Clean / Passed| J[Model Armor Client]
-        J --> K[POST /v1/templates:sanitizeUserPrompt]
-        K --> L[Policy Evaluator & Threshold Matcher]
-        L -->|Prompt Injection / Jailbreak| P1[Score >= 0.85]
-        L -->|Responsible AI / Safety| P2[Hate / Harm / Toxicity]
-        L -->|Malicious URIs| P3[Phishing / Threat URLs]
-        L -->|CSAM Filter| P4[Zero-Tolerance Violations]
+    subgraph DeepPath ["Deep-Path Stage 2: Google Cloud Model Armor (Latency: 15-40ms)"]
+        D -->|PII Clean / Passed| J["Model Armor Client"]
+        J --> K["POST /v1/templates:sanitizeUserPrompt"]
+        K --> L["Policy Evaluator & Threshold Matcher"]
+        L -->|Prompt Injection / Jailbreak| P1["Score >= 0.85"]
+        L -->|Responsible AI / Safety| P2["Hate / Harm / Toxicity"]
+        L -->|Malicious URIs| P3["Phishing / Threat URLs"]
+        L -->|CSAM Filter| P4["Zero-Tolerance Violations"]
     end
 
-    subgraph Governance & Audit Trail
-        D -->|Violation Detected| Q[Immutable SHA-256 Audit Logger]
+    subgraph Governance ["Governance and Audit Trail"]
+        D -->|Violation Detected| Q["Immutable SHA-256 Audit Logger"]
         L -->|Violation Detected| Q
-        L -->|Clean / Approved| R[Permit Execution / Decision: allow]
-        Q --> S[Cryptographic Hash-Chained Log Storage]
-        Q --> T[RFC 5424 / Cloud Logging Stream]
+        L -->|Clean / Approved| R["Permit Execution (Decision: allow)"]
+        Q --> S["Cryptographic Hash-Chained Log Storage"]
+        Q --> T["RFC 5424 / Cloud Logging Stream"]
     end
 ```
 
@@ -116,14 +116,14 @@ sequenceDiagram
     participant Audit as Cryptographic Audit Logger
     participant LLM as Gemini LLM Generator
 
-    User->>AG: Enters Prompt (e.g. "Process KYC for PAN ABCPE1234F...")
+    User->>AG: Enters Prompt (e.g. Process KYC for PAN ABCPE1234F...)
     AG->>Hook: Fire PreInvocation (JSON payload on stdin)
     Hook->>PII: Scan Text (Regex + Verhoeff + Luhn)
     
     alt PII Detected (Violation)
         PII-->>Hook: Contains PII (PAN: ABCPE1234F) [Severity: CRITICAL]
         Hook->>Audit: Record AuditEvent (SHA-256 Hash Chain)
-        Hook-->>AG: decision: deny ("🚫 [RBI Governance Block] Detected PAN")
+        Hook-->>AG: decision: deny (RBI Governance Block - Detected PAN)
         AG-->>User: Display Security Denial Banner (LLM Not Invocated)
     else PII Clean
         PII-->>Hook: PII Clean (0 matches)
@@ -132,7 +132,7 @@ sequenceDiagram
         
         alt Model Armor Match Found (Jailbreak / Malicious URI)
             Hook->>Audit: Record Security Threat Event
-            Hook-->>AG: decision: deny ("🛡️ [Model Armor Security Gate] Threat Blocked")
+            Hook-->>AG: decision: deny (Model Armor Security Gate - Threat Blocked)
             AG-->>User: Display Safety Denial Banner
         else Model Armor Passed
             Hook->>Audit: Record Clean Transaction Event
