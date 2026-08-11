@@ -41,22 +41,30 @@ Enterprise-grade Governance, Risk, and Compliance (GRC) Antigravity Plugin provi
 
 ## Quickstart
 
-### 1. Run Automated Test Suite
+### 1. Provision Server-Side Model Armor & Infrastructure via Terraform
+```bash
+cd terraform
+cp terraform.tfvars.example terraform.tfvars
+terraform init
+terraform apply
+```
+
+### 2. Run Automated Test Suite
 ```bash
 python3 tests/run_all_tests.py
 ```
 
-### 2. Test a Prompt with the Admin CLI
+### 3. Test a Prompt with the Admin CLI
 ```bash
 python3 src/cli/grc_admin.py test-prompt "Check KYC: PAN ABCPE1234F, Aadhaar 2345 6789 0124"
 ```
 
-### 3. Verify Compliance Matrix
+### 4. Verify Compliance Matrix
 ```bash
 python3 src/cli/grc_admin.py verify-compliance --framework ALL
 ```
 
-### 4. Inspect Cryptographic Audit Trail
+### 5. Inspect Cryptographic Audit Trail
 ```bash
 python3 src/cli/grc_admin.py show-audit --tail 10
 ```
@@ -66,6 +74,7 @@ python3 src/cli/grc_admin.py show-audit --tail 10
 ## Documentation Links
 
 * [System Architecture & SDD](docs/ARCHITECTURE.md)
+* [Terraform Infrastructure Automation](terraform/README.md)
 * [RBI Master Direction Compliance Mapping](docs/RBI_COMPLIANCE.md)
 * [SEBI CSCRF Framework Compliance Mapping](docs/SEBI_COMPLIANCE.md)
 * [Google Cloud Model Armor Deployment Guide](docs/MODEL_ARMOR_SETUP.md)

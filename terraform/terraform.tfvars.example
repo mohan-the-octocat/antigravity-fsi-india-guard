@@ -1,0 +1,36 @@
+# ==============================================================================
+# Antigravity FSI India Guard - Terraform Configuration Variables
+# ==============================================================================
+
+# Customer GCP Project ID
+project_id = "stratosphere-461622"
+
+# India Region for Domestic Data Localization (RBI/SEBI Mandate)
+# Options: "asia-south1" (Mumbai) or "asia-south2" (Delhi)
+region = "asia-south1"
+
+# Model Armor Template Resource ID
+template_id           = "fsi-india-compliance-template"
+template_display_name = "India FSI Governance & Safety Template"
+
+# Antigravity Service Account ID
+service_account_id = "antigravity-fsi-guard-sa"
+
+# Prompt Injection & Jailbreak Enforcement
+pi_jb_enforcement      = "ENFORCE"
+pi_jb_confidence_level = "LOW_AND_ABOVE"
+
+# Responsible AI Safety Filters
+rai_hate_speech_confidence        = "MEDIUM_AND_ABOVE"
+rai_harassment_confidence         = "MEDIUM_AND_ABOVE"
+rai_sexual_content_confidence     = "LOW_AND_ABOVE"
+rai_dangerous_content_confidence  = "LOW_AND_ABOVE"
+
+# Threat & Language Guardrails
+enable_malicious_uri_filter  = true
+enable_multi_language        = true
+enable_cloud_dlp_integration = true
+
+# 7-Year Audit Trail Retention (RBI Master Direction 2023, Para 22)
+create_audit_log_bucket = true
+audit_retention_days    = 2555

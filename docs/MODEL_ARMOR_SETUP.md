@@ -2,9 +2,26 @@
 
 This guide describes how to configure Google Cloud Model Armor in project `stratosphere-461622` in the `asia-south1` (Mumbai) region for production deployment.
 
+## 1. Automated Setup via Terraform (Recommended)
+
+A complete, production-ready Terraform module is provided in [`terraform/`](../terraform/) that automatically configures:
+- Model Armor API and template resources in domestic Indian regions (`asia-south1` or `asia-south2`).
+- Dedicated Antigravity Agent Service Account with `roles/modelarmor.user` and `roles/logging.logWriter`.
+- Cloud DLP inspection template for Indian financial and identity infoTypes (Aadhaar, PAN, GSTIN, Cards).
+- 7-Year Cloud Audit Log Bucket and Sink conforming to RBI IT Governance (2023, Para 22) and SEBI CSCRF (2024, Rule 8.4).
+
+### Terraform Quickstart:
+```bash
+cd terraform
+cp terraform.tfvars.example terraform.tfvars
+# Set your project_id and region in terraform.tfvars
+terraform init
+terraform apply
+```
+
 ---
 
-## 1. Architecture & IAM Requirements
+## 2. Manual Architecture & IAM Requirements
 
 Model Armor provides real-time sanitization and filtering for LLMs.
 
