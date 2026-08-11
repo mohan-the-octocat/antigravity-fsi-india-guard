@@ -1,0 +1,61 @@
+"""Unit tests for PII Detector and Redactor."""
+
+import unittest
+from src.pii_guard.checksums import verhoeff_generate
+from src.pii_guard.detector import PIIDetector
+from src.pii_guard.entities import PIISeverity
+
+
+class TestPIIDetector(unittest.TestCase):
+
+    def setUp(self):
+        self.detector = PIIDetector()
+        self.valid_aadh = "2345 6789 012" + verhoeff_generate("23456789012")
+
+    def test_clean_text(self):
+        report = self.detector.scan("Please review the standard architecture diagram for Cloud SQL.")
+        self.assertFalse(report.contains_pii)
+        self.assertEqual(report.total_matches, 0)
+        self.assertFalse(report.blocked_by_policy)
+
+    def test_pan_and_aadhaar_detection(self):
+        text = f"Customer PAN is ABCPE1234F and Aadhaar is {self.valid_aadh}."
+        report = self.detector.scan(text, action_mode="BLOCK")
+        self.assertTrue(report.contains_pii)
+        self.assertEqual(report.total_matches, 2)
+        self.assertTrue(report.blocked_by_policy)
+        self.assertEqual(report.highest_severity, PIISeverity.CRITICAL)
+
+        # Check redacted text preserves context
+        self.assertIn("ABXXXXX34F", report.redacted_text)
+        self.assertIn("XXXX-XXXX-", report.redacted_text)
+        self.assertNotIn("ABCPE1234F", report.redacted_text)
+
+    def test_banking_and_upi_detection(self):
+        text = "Send settlement of INR 50,000 to Account No: 123456789012 at IFSC HDFC0001234 or UPI rahul.finance@okaxis."
+        report = self.detector.scan(text, action_mode="BLOCK")
+        self.assertTrue(report.contains_pii)
+        self.assertGreaterEqual(report.total_matches, 3)
+
+        entity_types = [m.entity_type for m in report.matches]
+        self.assertIn("BANK_ACCOUNT_IN", entity_types)
+        self.assertIn("IFSC", entity_types)
+        self.assertIn("UPI_VPA", entity_types)
+
+    def test_card_and_cvv_detection(self):
+        text = "Card details for processing: 4532015112830366 CVV: 789 Exp: 12/28"
+        report = self.detector.scan(text, action_mode="BLOCK")
+        self.assertTrue(report.contains_pii)
+        self.assertTrue(report.blocked_by_policy)
+        self.assertEqual(report.highest_severity, PIISeverity.CRITICAL)
+
+    def test_action_mode_mask(self):
+        text = "User phone number is +91 9876543210."
+        report = self.detector.scan(text, action_mode="MASK")
+        self.assertTrue(report.contains_pii)
+        self.assertFalse(report.blocked_by_policy) # MASK mode does not hard block
+        self.assertIn("+91-XXXXX-3210", report.redacted_text)
+
+
+if __name__ == "__main__":
+    unittest.main()

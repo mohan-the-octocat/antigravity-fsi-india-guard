@@ -1,0 +1,41 @@
+# Securities and Exchange Board of India (SEBI) Regulatory Compliance Mapping
+# Covers:
+# 1. Cybersecurity and Cyber Resilience Framework (CSCRF) for Regulated Entities (2024)
+# 2. Master Circular on System and Network Audit for Stock Brokers / Depository Participants
+# 3. SEBI Guidelines on Use of Artificial Intelligence (AI) and Machine Learning (ML) in Securities Markets
+
+framework: "SEBI_CSCRF_2024"
+regulated_entities:
+  - "Stock Brokers & Clearing Members"
+  - "Mutual Funds & Asset Management Companies (AMCs)"
+  - "Depositories & Depository Participants"
+  - "Qualified Registrar and Transfer Agents (QRTAs)"
+  - "Credit Rating Agencies (CRAs)"
+  - "Alternative Investment Funds (AIFs) & Portfolio Managers"
+
+controls:
+  - id: "SEBI-CSCRF-AI-01"
+    section: "Part III - AI & Emerging Technologies Governance, Rule 6.2 (Input Validation & Guardrails)"
+    mandate: "Regulated entities deploying generative AI or automated LLM agents must ensure robust input validation, boundary defense, and real-time prevention of algorithmic exploitation or data exfiltration."
+    technical_enforcement:
+      hook: "fsi-model-armor-guard"
+      action: "BLOCK"
+      thresholds:
+        prompt_injection: "LOW_AND_ABOVE"
+        responsible_ai: "MEDIUM_AND_ABOVE"
+
+  - id: "SEBI-CSCRF-DP-02"
+    section: "Part II - Data Protection and Privacy, Rule 4.1 (Non-Public Personal Information Protection)"
+    mandate: "Client financial information, including PAN, Bank Accounts, Demat Account identifiers, and Tax identification (GSTIN) shall not be exposed in unencrypted or unmasked AI prompt contexts."
+    technical_enforcement:
+      hook: "fsi-pii-guard"
+      action: "BLOCK"
+      target_entities: ["PAN", "GSTIN", "BANK_ACCOUNT_IN", "CIN_IN", "PASSPORT_IN"]
+
+  - id: "SEBI-CSCRF-LOG-03"
+    section: "Part IV - Incident Response & Audit Logging, Rule 8.4 (Log Ingestion and Preservation)"
+    mandate: "Comprehensive log records of all AI policy evaluations, blocked threats, and access attempts must be preserved with cryptographic hashing and UTC/IST timestamps."
+    technical_enforcement:
+      module: "src/governance/audit_logger.py"
+      hash_algorithm: "SHA-256"
+      compliance_tag: "SEBI_CSCRF_LOG_2024"

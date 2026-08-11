@@ -1,0 +1,50 @@
+# Reserve Bank of India (RBI) Regulatory Compliance Mapping
+# Covers:
+# 1. Master Direction on Information Technology Governance, Risk, Controls and Assurance Practices (2023)
+# 2. Master Direction on Digital Payment Security Controls (2021)
+# 3. Master Direction - Know Your Customer (KYC) Direction, 2016 (Updated 2023)
+# 4. Circular on Tokenisation - Card Transactions (2021)
+
+framework: "RBI_REGULATORY_CONTROLS_2023"
+regulated_entities:
+  - "Commercial Banks (Public, Private, Foreign)"
+  - "Small Finance Banks & Payments Banks"
+  - "Non-Banking Financial Companies (NBFCs)"
+  - "Primary (Urban) Co-operative Banks"
+  - "Payment System Operators (PSOs) & Payment Aggregators (PAs)"
+
+controls:
+  - id: "RBI-ITG-SEC-01"
+    section: "Chapter III - Information Security, Para 11 (Data Protection & Privacy)"
+    mandate: "Regulated Entities (REs) shall implement controls to prevent unauthorized disclosure, leakage, or unapproved processing of customer Personally Identifiable Information (PII) and sensitive financial data."
+    technical_enforcement:
+      hook: "fsi-pii-guard"
+      action: "BLOCK"
+      target_entities: ["AADHAAR", "PAN", "BANK_ACCOUNT_IN", "CREDIT_DEBIT_CARD", "CARD_CVV", "UPI_VPA", "PHONE_IN"]
+      validation: "Verhoeff, Luhn, and Regex checksum inspection"
+
+  - id: "RBI-ITG-SEC-02"
+    section: "Chapter III - Information Security, Para 14 (Cyber Security Operations & Threat Defense)"
+    mandate: "REs shall deploy automated threat detection systems against adversarial inputs, prompt injection, and malicious payloads targeting automated systems."
+    technical_enforcement:
+      hook: "fsi-model-armor-guard"
+      action: "BLOCK"
+      target_checks: ["prompt_injection_and_jailbreak", "malicious_uris", "csam"]
+      backend_service: "Google Cloud Model Armor (asia-south1)"
+
+  - id: "RBI-DPSC-03"
+    section: "Digital Payment Security Controls, Section 4 (Card Data Security & Tokenisation)"
+    mandate: "No entity in the payment chain other than card issuers and card networks shall store actual card numbers (PAN) or CVV data. Unmasked card data in prompts is strictly prohibited."
+    technical_enforcement:
+      hook: "fsi-pii-guard"
+      action: "BLOCK"
+      target_entities: ["CREDIT_DEBIT_CARD", "CARD_CVV"]
+      redaction_fallback: "MASK"
+
+  - id: "RBI-ITG-AUD-04"
+    section: "Chapter V - Audit Trail & Logging, Para 22 (Tamper-Resistant Audit Trail)"
+    mandate: "All automated interactions, policy denials, and security alerts shall be logged in a centralized, time-synchronized, immutable audit log with retention for minimum 7 years."
+    technical_enforcement:
+      module: "src/governance/audit_logger.py"
+      format: "JSON / Cloud Logging"
+      retention_years: 7

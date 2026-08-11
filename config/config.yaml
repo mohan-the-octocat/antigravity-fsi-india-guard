@@ -1,0 +1,91 @@
+# Antigravity FSI India Guard - Master Configuration File
+# Designed for Indian Financial Services Institutions under RBI & SEBI Governance
+
+version: "1.0.0"
+environment: "production" # development, staging, production
+
+# Global Enforcement Mode:
+#   - BLOCK: Hard-blocks prompt/tool if any critical violation is detected (Returns decision: deny)
+#   - MASK: Redacts sensitive PII and sanitizes prompt before sending to LLM
+#   - WARN: Injects security warning into context but allows execution
+#   - AUDIT: Silent mode; logs compliance violations without interrupting flow
+enforcement_mode: "BLOCK"
+
+# PII Regex & Pattern Matching Engine Configuration
+pii_guard:
+  enabled: true
+  action_on_detection: "BLOCK" # BLOCK, MASK, WARN, AUDIT
+  patterns_file: "config/pii_patterns.json"
+  strict_checksum_validation: true
+  scan_user_inputs: true
+  scan_tool_arguments: true
+  scan_tool_outputs: false
+  min_severity_to_block: "HIGH" # CRITICAL, HIGH, MEDIUM, LOW
+  allowed_entities: [] # Optional list of entities to bypass
+  custom_redaction_token: "[REDACTED_{entity_type}]"
+
+# Google Cloud Model Armor Configuration
+model_armor:
+  enabled: true
+  action_on_match: "BLOCK" # BLOCK, FORCE_ASK, WARN
+  project_id: "stratosphere-461622"
+  location: "asia-south1" # asia-south1 (Mumbai), asia-south2 (Delhi), us-central1
+  template_id: "fsi-india-compliance-template"
+  endpoint: "modelarmor.googleapis.com" # Or custom regional endpoint
+  mock_mode: false # Set true for local offline testing / CI
+  fail_open_on_network_error: false # FSI compliance requires Fail-Closed (false)
+  timeout_seconds: 5.0
+  retry_attempts: 2
+  
+  # Filter Evaluation Thresholds
+  thresholds:
+    prompt_injection_and_jailbreak:
+      confidence_level: "LOW_AND_ABOVE" # Match on LOW, MEDIUM, HIGH confidence
+      action: "BLOCK"
+    responsible_ai:
+      hate_speech: "MEDIUM_AND_ABOVE"
+      harassment: "MEDIUM_AND_ABOVE"
+      sexually_explicit: "LOW_AND_ABOVE"
+      dangerous_content: "LOW_AND_ABOVE"
+      action: "BLOCK"
+    sensitive_data_protection:
+      action: "BLOCK"
+      info_types:
+        - "INDIA_AADHAAR"
+        - "INDIA_PAN"
+        - "INDIA_PASSPORT"
+        - "INDIA_GSTIN"
+        - "CREDIT_CARD_NUMBER"
+        - "SWIFT_CODE"
+    malicious_uris:
+      action: "BLOCK"
+    multi_language:
+      enabled: true
+      source_languages: ["en", "hi", "ta", "te", "bn", "mr", "gu", "kn"]
+
+# Regulatory Compliance Framework Alignment
+compliance_profiles:
+  rbi_master_direction_it_2023:
+    enabled: true
+    config_file: "config/rbi_compliance.yaml"
+    enforce_customer_data_protection: true
+    enforce_audit_trail_tamper_resistance: true
+  sebi_cscrf_2024:
+    enabled: true
+    config_file: "config/sebi_compliance.yaml"
+    enforce_algorithmic_guardrails: true
+    enforce_cyber_resilience: true
+  dpdp_act_2023:
+    enabled: true
+    enforce_purpose_limitation_notice: true
+    enforce_data_minimization: true
+
+# Enterprise Audit & Logging
+audit_logging:
+  enabled: true
+  output_format: "JSON" # JSON, RFC5424, CLOUD_LOGGING
+  log_file_path: "logs/fsi_audit.log"
+  emit_to_stderr: true
+  include_masked_snippets: true
+  retention_days: 2555 # 7-year regulatory retention per RBI/SEBI standards
+  hash_salt: "FSI_GRC_SALT_INDIA_2026"

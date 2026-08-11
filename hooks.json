@@ -1,0 +1,68 @@
+{
+  "fsi-pii-guard": {
+    "enabled": true,
+    "PreInvocation": [
+      {
+        "type": "command",
+        "command": "python3 src/hooks/pii_hook.py",
+        "timeout": 15
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 src/hooks/pii_hook.py",
+            "timeout": 15
+          }
+        ]
+      }
+    ]
+  },
+  "fsi-model-armor-guard": {
+    "enabled": true,
+    "PreInvocation": [
+      {
+        "type": "command",
+        "command": "python3 src/hooks/model_armor_hook.py",
+        "timeout": 30
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 src/hooks/model_armor_hook.py",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  },
+  "fsi-unified-guard": {
+    "enabled": false,
+    "PreInvocation": [
+      {
+        "type": "command",
+        "command": "python3 src/hooks/combined_guard_hook.py",
+        "timeout": 35
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 src/hooks/combined_guard_hook.py",
+            "timeout": 35
+          }
+        ]
+      }
+    ]
+  }
+}

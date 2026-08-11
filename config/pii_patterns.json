@@ -1,0 +1,211 @@
+{
+  "version": "1.0.0",
+  "locale": "en_IN",
+  "entities": {
+    "AADHAAR": {
+      "name": "Aadhaar Number (UIDAI)",
+      "category": "NATIONAL_ID",
+      "severity": "CRITICAL",
+      "regulatory_frameworks": [
+        "RBI_MD_IT_2023",
+        "SEBI_CSCRF_2024",
+        "DPDP_ACT_2023",
+        "UIDAI_REGULATIONS"
+      ],
+      "regex": "\\b[2-9]\\d{3}[\\s-]?(?:\\d{4}[\\s-]?\\d{4}|XXXX[\\s-]?[A-Z0-9]{4})\\b",
+      "masked_regex": "\\b[X\\d]{4}[\\s-]?[X\\d]{4}[\\s-]?\\d{4}\\b",
+      "checksum_algorithm": "verhoeff",
+      "description": "12-digit Unique Identification Authority of India (UIDAI) citizen identity number. Must not start with 0 or 1. Validated via Verhoeff dihedral group D5 checksum.",
+      "masking_pattern": "XXXX-XXXX-{last4}"
+    },
+    "PAN": {
+      "name": "Permanent Account Number (PAN)",
+      "category": "TAX_AND_FINANCIAL_ID",
+      "severity": "CRITICAL",
+      "regulatory_frameworks": [
+        "RBI_MD_IT_2023",
+        "SEBI_CSCRF_2024",
+        "DPDP_ACT_2023",
+        "INCOME_TAX_ACT"
+      ],
+      "regex": "\\b[A-Z]{3}[PCHFATBLJG][A-Z]\\d{4}[A-Z]\\b",
+      "checksum_algorithm": "pan_structure",
+      "description": "10-character alphanumeric Indian Income Tax identifier. 4th char is entity status (P=Person, C=Company, H=HUF, F=Firm, A=AOP, T=Trust, B=BOI, L=Local, J=Artificial, G=Govt). 5th char is surname initial.",
+      "masking_pattern": "{first2}XXXXX{last3}"
+    },
+    "PASSPORT_IN": {
+      "name": "Indian Passport Number",
+      "category": "TRAVEL_DOCUMENT",
+      "severity": "HIGH",
+      "regulatory_frameworks": [
+        "RBI_MD_IT_2023",
+        "SEBI_CSCRF_2024",
+        "DPDP_ACT_2023"
+      ],
+      "regex": "\\b[A-PR-WYa-pr-wy][1-9]\\d\\s?\\d{4}[1-9]\\b",
+      "checksum_algorithm": "passport_in_structure",
+      "description": "8-character Indian Passport number starting with an uppercase letter (excluding Q, X, Z), followed by 7 digits.",
+      "masking_pattern": "{first1}XXXXXX{last1}"
+    },
+    "VOTER_ID_IN": {
+      "name": "Election Photo Identity Card (Voter ID / EPIC)",
+      "category": "NATIONAL_ID",
+      "severity": "HIGH",
+      "regulatory_frameworks": [
+        "DPDP_ACT_2023",
+        "RBI_KYC_DIRECTIONS"
+      ],
+      "regex": "\\b[A-Z]{3}\\d{7}\\b",
+      "checksum_algorithm": "voter_id_structure",
+      "description": "10-character Electoral Photo ID Card (EPIC) with 3 uppercase letters followed by 7 numeric digits.",
+      "masking_pattern": "{first3}XXXX{last3}"
+    },
+    "DRIVING_LICENSE_IN": {
+      "name": "Indian Driving Licence (DL)",
+      "category": "NATIONAL_ID",
+      "severity": "HIGH",
+      "regulatory_frameworks": [
+        "DPDP_ACT_2023",
+        "RBI_KYC_DIRECTIONS"
+      ],
+      "regex": "\\b(?:[A-Z]{2}[-\\s]?\\d{2}[-\\s]?(?:19|20)\\d{2}[-\\s]?\\d{7}|[A-Z]{2}\\d{13,14})\\b",
+      "checksum_algorithm": "dl_in_structure",
+      "description": "Indian Driving Licence number conforming to Sarathi format (2-letter state code + 2-digit RTO + 4-digit issue year + 7-digit unique number).",
+      "masking_pattern": "{first2}XXXX{last4}"
+    },
+    "GSTIN": {
+      "name": "Goods and Services Tax Identification Number (GSTIN)",
+      "category": "TAX_AND_FINANCIAL_ID",
+      "severity": "HIGH",
+      "regulatory_frameworks": [
+        "SEBI_CSCRF_2024",
+        "RBI_MD_IT_2023",
+        "GST_ACT_2017"
+      ],
+      "regex": "\\b(?:0[1-9]|[1-2]\\d|3[0-8]|97|99)[A-Z]{5}\\d{4}[A-Z][1-9A-Z]Z[0-9A-Z]\\b",
+      "checksum_algorithm": "gstin_mod36",
+      "description": "15-character alphanumeric GST identifier (2-digit State code + 10-char PAN + 1-char entity number + Z + 1-char Mod 36 checksum).",
+      "masking_pattern": "{first2}XXXXXXXXX{last4}"
+    },
+    "BANK_ACCOUNT_IN": {
+      "name": "Indian Bank Account Number",
+      "category": "BANKING_DATA",
+      "severity": "CRITICAL",
+      "regulatory_frameworks": [
+        "RBI_MD_IT_2023",
+        "RBI_CYBER_SECURITY_FRAMEWORK",
+        "SEBI_CSCRF_2024"
+      ],
+      "regex": "(?i)(?:a\\/?c|account(?:\\s*no|\\s*number)?|acc\\s*no|saving(?:s)?\\s*a\\/?c|current\\s*a\\/?c|salary\\s*a\\/?c)[\\s:=#-]*(\\d{9,18})\\b",
+      "checksum_algorithm": "contextual_digits",
+      "description": "Indian Core Banking System (CBS) bank account number (9 to 18 digits) preceded or surrounded by banking account context markers.",
+      "masking_pattern": "XXXXXXXXXXXX{last4}"
+    },
+    "IFSC": {
+      "name": "Indian Financial System Code (IFSC)",
+      "category": "BANKING_DATA",
+      "severity": "MEDIUM",
+      "regulatory_frameworks": [
+        "RBI_MD_IT_2023",
+        "NPCI_GUIDELINES"
+      ],
+      "regex": "\\b[A-Z]{4}0[A-Z0-9]{6}\\b",
+      "checksum_algorithm": "ifsc_structure",
+      "description": "11-character code for electronic payment systems (NEFT, RTGS, IMPS). First 4 letters bank code, 5th character must be 0, last 6 branch code.",
+      "masking_pattern": "{first4}0XX{last3}"
+    },
+    "MICR": {
+      "name": "Magnetic Ink Character Recognition (MICR) Code",
+      "category": "BANKING_DATA",
+      "severity": "MEDIUM",
+      "regulatory_frameworks": [
+        "RBI_MD_IT_2023",
+        "CTS_REGULATIONS"
+      ],
+      "regex": "(?i)(?:micr(?:\\s*code)?[\\s:=#-]*)\\b(\\d{9})\\b|\\b(\\d{3}\\d{3}\\d{3})\\b(?=\\s*(?:cheque|clearing|micr))",
+      "checksum_algorithm": "micr_structure",
+      "description": "9-digit numeric code printed on cheques (3-digit City code + 3-digit Bank code + 3-digit Branch code).",
+      "masking_pattern": "{first3}XXX{last3}"
+    },
+    "UPI_VPA": {
+      "name": "Unified Payments Interface Virtual Payment Address (UPI VPA)",
+      "category": "PAYMENT_IDENTIFIER",
+      "severity": "HIGH",
+      "regulatory_frameworks": [
+        "RBI_DIGITAL_PAYMENT_2021",
+        "NPCI_UPI_SECURITY_CIRCULARS",
+        "DPDP_ACT_2023"
+      ],
+      "regex": "\\b[a-zA-Z0-9._-]{2,64}@(?:okaxis|okicici|oksbi|okhdfcbank|paytm|ybl|ibl|axl|apl|upi|postbank|barodampay|federal|kotak|indus|pnb|allbank|cnrb|sbi|aubank|idbi|boi|unionbank|equitas|fbl|rbl|pingpay|slice|jupiteraxis|cred|freecharge|mobikwik|amazonpay|airtel)\\b|\\b[a-zA-Z0-9._-]{3,64}@[a-zA-Z]{3,30}\\b",
+      "checksum_algorithm": "upi_handle_validation",
+      "description": "Virtual Payment Address used for real-time payments across NPCI Unified Payments Interface network.",
+      "masking_pattern": "{first2}***@{handle}"
+    },
+    "CREDIT_DEBIT_CARD": {
+      "name": "Payment Card Number (RuPay / Visa / Mastercard / Amex)",
+      "category": "CARD_DATA",
+      "severity": "CRITICAL",
+      "regulatory_frameworks": [
+        "RBI_TOKENIZATION_CIRCULAR",
+        "RBI_CARD_DATA_SECURITY",
+        "PCI_DSS_V4"
+      ],
+      "regex": "\\b(?:4[0-9]{12}(?:[0-9]{3})?|5[1-5][0-9]{14}|6(?:011|5[0-9]{2})[0-9]{12}|(?:508[5-9]|606[9]|607[0-9]|608[0-4]|652[1-2]|653[0-1])[0-9]{12}|3[47][0-9]{13})\\b",
+      "checksum_algorithm": "luhn",
+      "description": "13-16 digit payment card primary account number (including Indian RuPay prefixes 5085-5089, 6069, 6070-6079, 6080-6084, 6521-6531) validated via Luhn algorithm.",
+      "masking_pattern": "{first4}-XXXX-XXXX-{last4}"
+    },
+    "CARD_CVV": {
+      "name": "Card Verification Value (CVV / CVC / CID)",
+      "category": "AUTHENTICATION_DATA",
+      "severity": "CRITICAL",
+      "regulatory_frameworks": [
+        "RBI_TOKENIZATION_CIRCULAR",
+        "PCI_DSS_V4"
+      ],
+      "regex": "(?i)\\b(?:cvv|cvc|cid|security\\s*code|card\\s*verification)[\\s:=#-]*([0-9]{3,4})\\b",
+      "checksum_algorithm": "none",
+      "description": "3 or 4 digit security code printed on payment cards. Strictly forbidden from storage and transmission under RBI mandates.",
+      "masking_pattern": "[REDACTED_CVV]"
+    },
+    "PHONE_IN": {
+      "name": "Indian Mobile / Telephone Number",
+      "category": "CONTACT_INFO",
+      "severity": "MEDIUM",
+      "regulatory_frameworks": [
+        "DPDP_ACT_2023",
+        "TRAI_REGULATIONS",
+        "RBI_MD_IT_2023"
+      ],
+      "regex": "(?:\\+91[\\s-]?)?(?:\\(?0?[6-9]\\d{2}\\)?[\\s-]?)?\\d{3}[\\s-]?\\d{4}\\b",
+      "checksum_algorithm": "phone_in_validation",
+      "description": "10-digit Indian telephone number starting with digits 6, 7, 8, or 9, with optional +91 or 0 country/trunk prefix.",
+      "masking_pattern": "+91-XXXXX-{last4}"
+    },
+    "PIN_CODE_IN": {
+      "name": "Postal Index Number (PIN Code)",
+      "category": "LOCATION_DATA",
+      "severity": "LOW",
+      "regulatory_frameworks": [
+        "DPDP_ACT_2023"
+      ],
+      "regex": "(?i)(?:pin(?:\\s*code)?|postal(?:\\s*code)?|zip)[\\s:=#-]*\\b([1-9]\\d{2}\\s?\\d{3})\\b",
+      "checksum_algorithm": "pin_code_validation",
+      "description": "6-digit Indian Postal Index Number. 1st digit designates postal zone (1-9), followed by sub-zone, sorting district, and delivery post office.",
+      "masking_pattern": "{first3}XXX"
+    },
+    "CIN_IN": {
+      "name": "Corporate Identification Number (CIN)",
+      "category": "CORPORATE_IDENTIFIER",
+      "severity": "MEDIUM",
+      "regulatory_frameworks": [
+        "SEBI_LODR_REGULATIONS",
+        "MCA_REGULATIONS"
+      ],
+      "regex": "\\b([LU]\\d{5}[A-Z]{2}\\d{4}[A-Z]{3}\\d{6})\\b",
+      "checksum_algorithm": "cin_structure",
+      "description": "21-digit alphanumeric number issued by Ministry of Corporate Affairs (Listing status [L/U] + 5-digit Industry code + 2-letter State code + 4-digit Incorporation year + 3-letter Company type + 6-digit Registration number).",
+      "masking_pattern": "{first6}XXXXXXXX{last7}"
+    }
+  }
+}
