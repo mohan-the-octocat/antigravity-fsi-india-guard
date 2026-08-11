@@ -46,12 +46,12 @@ You can add this plugin to your local Antigravity 2.0 instance using any of the 
 ### Method 1: Global Installation (Recommended — Available across all workspaces)
 Clone the repository directly into your local Antigravity plugins directory:
 ```bash
-git clone https://github.com/mohan-the-octocat/antigravity-fsi-india-guard.git ~/.gemini/jetski/plugins/antigravity-fsi-india-guard
+git clone https://github.com/mohan-the-octocat/antigravity-fsi-india-guard.git ~/.gemini/antigravity/plugins/antigravity-fsi-india-guard
 ```
 
 *Or, if you have already cloned the repository locally, symlink it:*
 ```bash
-ln -s /path/to/antigravity-fsi-india-guard ~/.gemini/jetski/plugins/antigravity-fsi-india-guard
+ln -s /path/to/antigravity-fsi-india-guard ~/.gemini/antigravity/plugins/antigravity-fsi-india-guard
 ```
 
 ### Method 2: Workspace-Scoped Installation (Project-specific)
