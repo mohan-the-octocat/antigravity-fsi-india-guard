@@ -72,6 +72,33 @@ git clone https://github.com/mohan-the-octocat/antigravity-fsi-india-guard.git .
 
 ---
 
+### Troubleshooting Plugin Discovery
+
+If the plugin does not appear in Antigravity after placing it in a global path:
+
+1. **Explicit Registration via `plugins.json`**:
+   If Antigravity does not automatically scan your custom directory, explicitly register the path in your global plugins configuration file (`~/.gemini/config/plugins.json`):
+   ```json
+   {
+     "entries": [
+       {
+         "path": "/absolute/path/to/antigravity-fsi-india-guard"
+       }
+     ]
+   }
+   ```
+2. **Verify `plugin.json` Location**:
+   Ensure `plugin.json` is at the **root** of the target folder (`/path/to/antigravity-fsi-india-guard/plugin.json`) and not nested inside a subfolder.
+3. **Permissions**:
+   Ensure the hook entrypoints have executable permissions:
+   ```bash
+   chmod +x src/hooks/*.py src/cli/grc_admin.py
+   ```
+4. **Session Refresh**:
+   Plugins, hooks, and skills are initialized when a session starts. Open a **new conversation window** or restart Antigravity to reload the discovery index.
+
+---
+
 ### Verifying Plugin Activation
 
 Once installed, verify that the lifecycle hooks and guardrails are active:
