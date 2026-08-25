@@ -6,12 +6,12 @@ variable "project_id" {
 
 variable "region" {
   type        = string
-  description = "The Google Cloud region for Model Armor and DLP. Must be in India (asia-south1 or asia-south2) to adhere to RBI/SEBI domestic data localization mandates."
+  description = "The Google Cloud region for Model Armor and DLP. Defaults to 'asia-south1' (Mumbai) for production RBI/SEBI domestic data residency, or 'us-central1' / supported regions for Argolis and sandbox environments."
   default     = "asia-south1"
 
   validation {
-    condition     = contains(["asia-south1", "asia-south2"], var.region)
-    error_message = "Region must be either 'asia-south1' (Mumbai) or 'asia-south2' (Delhi) to comply with RBI/SEBI domestic data residency."
+    condition     = contains(["asia-south1", "asia-south2", "us-central1", "us-east4", "europe-west1", "asia-southeast1"], var.region)
+    error_message = "Region must be one of 'asia-south1', 'asia-south2', 'us-central1', 'us-east4', 'europe-west1', or 'asia-southeast1'."
   }
 }
 

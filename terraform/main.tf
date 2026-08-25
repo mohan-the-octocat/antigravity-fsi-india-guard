@@ -112,24 +112,36 @@ resource "google_data_loss_prevention_inspect_template" "fsi_india_dlp_template"
 # ==============================================================================
 locals {
   model_armor_payload = jsonencode({
-    displayName = var.template_display_name
-    description = "Model Armor template enforcing RBI IT Governance (2023) and SEBI CSCRF (2024) guardrails against prompt injection, toxic content, data leakage, and malicious URLs."
-    filterConfig = {
-      piAndJailbreakFilterConfig = {
-        filterEnforcement = var.pi_jb_enforcement
-        confidenceLevel   = var.pi_jb_confidence_level
+    template_metadata = {
+      custom_prompt_safety_error_message = "Prompt blocked by FSI Model Armor security policy."
+    }
+    filter_config = {
+      pi_and_jailbreak_filter_settings = {
+        filter_enforcement = var.pi_jb_enforcement == "ENFORCE" ? "ENABLED" : "DISABLED"
+        confidence_level   = var.pi_jb_confidence_level
       }
-      raiFilterConfig = {
-        hateSpeech       = { filterEnforcement = "ENFORCE", confidenceLevel = var.rai_hate_speech_confidence }
-        harassment       = { filterEnforcement = "ENFORCE", confidenceLevel = var.rai_harassment_confidence }
-        sexuallyExplicit = { filterEnforcement = "ENFORCE", confidenceLevel = var.rai_sexual_content_confidence }
-        dangerousContent = { filterEnforcement = "ENFORCE", confidenceLevel = var.rai_dangerous_content_confidence }
+      malicious_uri_filter_settings = {
+        filter_enforcement = var.enable_malicious_uri_filter ? "ENABLED" : "DISABLED"
       }
-      maliciousUriFilterConfig = {
-        filterEnforcement = var.enable_malicious_uri_filter ? "ENFORCE" : "OFF"
-      }
-      multiLanguageConfig = {
-        enableMultiLanguageDetection = var.enable_multi_language
+      rai_settings = {
+        rai_filters = [
+          {
+            filter_type      = "HATE_SPEECH"
+            confidence_level = var.rai_hate_speech_confidence
+          },
+          {
+            filter_type      = "HARASSMENT"
+            confidence_level = var.rai_harassment_confidence
+          },
+          {
+            filter_type      = "SEXUALLY_EXPLICIT"
+            confidence_level = var.rai_sexual_content_confidence
+          },
+          {
+            filter_type      = "DANGEROUS"
+            confidence_level = var.rai_dangerous_content_confidence
+          }
+        ]
       }
     }
   })
@@ -152,21 +164,42 @@ resource "null_resource" "model_armor_template_provisioner" {
     command = <<EOT
       echo "Deploying Model Armor Template: projects/${var.project_id}/locations/${var.region}/templates/${var.template_id}..."
       
-      TOKEN=$(gcloud auth print-access-token 2>/dev/null || echo "")
+      TOKEN=$(gcloud auth print-access-token)
       if [ -z "$TOKEN" ]; then
-        echo "Warning: No gcloud credentials found. Skipping direct REST invocation (can be applied via gcloud / console)."
-        exit 0
+        echo "Error: No gcloud credentials found. Please authenticate via 'gcloud auth login' and 'gcloud auth application-default login'." >&2
+        exit 1
       fi
 
       # Check if template already exists
-      HTTP_STATUS=$(curl -s -o /dev/null -w "%%{http_code}"         -H "Authorization: Bearer $TOKEN"         -H "X-Goog-User-Project: ${var.project_id}"         "https://modelarmor.googleapis.com/v1/projects/${var.project_id}/locations/${var.region}/templates/${var.template_id}")
+      HTTP_STATUS=$(curl -s -o /dev/null -w "%%{http_code}" \
+        -H "Authorization: Bearer $TOKEN" \
+        -H "X-Goog-User-Project: ${var.project_id}" \
+        "https://modelarmor.googleapis.com/v1/projects/${var.project_id}/locations/${var.region}/templates/${var.template_id}")
 
       if [ "$HTTP_STATUS" -eq "200" ]; then
         echo "Template exists. Updating..."
-        curl -s -X PATCH           -H "Authorization: Bearer $TOKEN"           -H "Content-Type: application/json; charset=utf-8"           -H "X-Goog-User-Project: ${var.project_id}"           "https://modelarmor.googleapis.com/v1/projects/${var.project_id}/locations/${var.region}/templates/${var.template_id}?updateMask=filterConfig,displayName,description"           -d @${local_file.model_armor_spec.filename}
+        RESPONSE=$(curl -s -w "\nHTTP_CODE:%%{http_code}" -X PATCH \
+          -H "Authorization: Bearer $TOKEN" \
+          -H "Content-Type: application/json; charset=utf-8" \
+          -H "X-Goog-User-Project: ${var.project_id}" \
+          "https://modelarmor.googleapis.com/v1/projects/${var.project_id}/locations/${var.region}/templates/${var.template_id}?updateMask=filter_config,template_metadata" \
+          -d @${local_file.model_armor_spec.filename})
+        echo "$RESPONSE"
       else
         echo "Creating new template..."
-        curl -s -X POST           -H "Authorization: Bearer $TOKEN"           -H "Content-Type: application/json; charset=utf-8"           -H "X-Goog-User-Project: ${var.project_id}"           "https://modelarmor.googleapis.com/v1/projects/${var.project_id}/locations/${var.region}/templates?templateId=${var.template_id}"           -d @${local_file.model_armor_spec.filename}
+        RESPONSE=$(curl -s -w "\nHTTP_CODE:%%{http_code}" -X POST \
+          -H "Authorization: Bearer $TOKEN" \
+          -H "Content-Type: application/json; charset=utf-8" \
+          -H "X-Goog-User-Project: ${var.project_id}" \
+          "https://modelarmor.googleapis.com/v1/projects/${var.project_id}/locations/${var.region}/templates?templateId=${var.template_id}" \
+          -d @${local_file.model_armor_spec.filename})
+        echo "$RESPONSE"
+        if echo "$RESPONSE" | grep -q 'HTTP_CODE:200'; then
+          echo "Template created successfully."
+        else
+          echo "Error: Failed to create template." >&2
+          exit 1
+        fi
       fi
 EOT
   }
