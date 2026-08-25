@@ -116,39 +116,47 @@ resource "google_data_loss_prevention_inspect_template" "fsi_india_dlp_template"
 # 4. Google Cloud Model Armor Template Provisioning
 # ==============================================================================
 locals {
+  # Malicious URI filtering capability is currently supported in US/EU regions.
+  # asia-south1 (Mumbai) / asia-south2 (Delhi) support PI/JB, RAI, and DLP domestic controls.
+  include_malicious_uri = var.enable_malicious_uri_filter && !contains(["asia-south1", "asia-south2"], var.region)
+
   model_armor_payload = jsonencode({
     template_metadata = {
       custom_prompt_safety_error_message = "Prompt blocked by FSI Model Armor security policy."
     }
-    filter_config = {
-      pi_and_jailbreak_filter_settings = {
-        filter_enforcement = var.pi_jb_enforcement == "ENFORCE" ? "ENABLED" : "DISABLED"
-        confidence_level   = var.pi_jb_confidence_level
-      }
-      malicious_uri_filter_settings = {
-        filter_enforcement = var.enable_malicious_uri_filter ? "ENABLED" : "DISABLED"
-      }
-      rai_settings = {
-        rai_filters = [
-          {
-            filter_type      = "HATE_SPEECH"
-            confidence_level = var.rai_hate_speech_confidence
-          },
-          {
-            filter_type      = "HARASSMENT"
-            confidence_level = var.rai_harassment_confidence
-          },
-          {
-            filter_type      = "SEXUALLY_EXPLICIT"
-            confidence_level = var.rai_sexual_content_confidence
-          },
-          {
-            filter_type      = "DANGEROUS"
-            confidence_level = var.rai_dangerous_content_confidence
-          }
-        ]
-      }
-    }
+    filter_config = merge(
+      {
+        pi_and_jailbreak_filter_settings = {
+          filter_enforcement = var.pi_jb_enforcement == "ENFORCE" ? "ENABLED" : "DISABLED"
+          confidence_level   = var.pi_jb_confidence_level
+        }
+        rai_settings = {
+          rai_filters = [
+            {
+              filter_type      = "HATE_SPEECH"
+              confidence_level = var.rai_hate_speech_confidence
+            },
+            {
+              filter_type      = "HARASSMENT"
+              confidence_level = var.rai_harassment_confidence
+            },
+            {
+              filter_type      = "SEXUALLY_EXPLICIT"
+              confidence_level = var.rai_sexual_content_confidence
+            },
+            {
+              filter_type      = "DANGEROUS"
+              confidence_level = var.rai_dangerous_content_confidence
+            }
+          ]
+        }
+      },
+      local.include_malicious_uri ? {
+        malicious_uri_filter_settings = {
+          filter_enforcement = "ENABLED"
+        }
+      } : {}
+    )
   })
 }
 
@@ -222,7 +230,7 @@ resource "google_logging_project_bucket_config" "fsi_audit_bucket" {
   count          = var.create_audit_log_bucket ? 1 : 0
   project        = var.project_id
   location       = var.region
-  bucket_id      = "fsi-india-grc-audit-bucket"
+  bucket_id      = "fsi-india-compliance-audit-bucket"
   retention_days = var.audit_retention_days
   description    = "Cryptographically preserved 7-year audit retention bucket for RBI ITG 2023 (Para 22) and SEBI CSCRF 2024 (Rule 8.4) compliance."
 
