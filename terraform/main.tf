@@ -1,11 +1,15 @@
 provider "google" {
-  project = var.project_id
-  region  = var.region
+  project               = var.project_id
+  region                = var.region
+  user_project_override = true
+  billing_project       = var.project_id
 }
 
 provider "google-beta" {
-  project = var.project_id
-  region  = var.region
+  project               = var.project_id
+  region                = var.region
+  user_project_override = true
+  billing_project       = var.project_id
 }
 
 # ==============================================================================
@@ -22,7 +26,7 @@ locals {
 }
 
 resource "google_project_service" "fsi_services" {
-  for_each           = toset(locals.services)
+  for_each           = toset(local.services)
   project            = var.project_id
   service            = each.key
   disable_on_destroy = false
@@ -78,10 +82,10 @@ resource "google_data_loss_prevention_inspect_template" "fsi_india_dlp_template"
     min_likelihood = "LIKELY"
 
     info_types {
-      name = "INDIA_AADHAAR_NUMBER"
+      name = "INDIA_AADHAAR_INDIVIDUAL"
     }
     info_types {
-      name = "INDIA_PAN_NUMBER"
+      name = "INDIA_PAN_INDIVIDUAL"
     }
     info_types {
       name = "INDIA_GST_INDIVIDUAL"
@@ -100,6 +104,7 @@ resource "google_data_loss_prevention_inspect_template" "fsi_india_dlp_template"
     }
 
     limits {
+      max_findings_per_item    = 100
       max_findings_per_request = 100
     }
   }
@@ -174,7 +179,7 @@ resource "null_resource" "model_armor_template_provisioner" {
       HTTP_STATUS=$(curl -s -o /dev/null -w "%%{http_code}" \
         -H "Authorization: Bearer $TOKEN" \
         -H "X-Goog-User-Project: ${var.project_id}" \
-        "https://modelarmor.googleapis.com/v1/projects/${var.project_id}/locations/${var.region}/templates/${var.template_id}")
+        "https://modelarmor.${var.region}.rep.googleapis.com/v1/projects/${var.project_id}/locations/${var.region}/templates/${var.template_id}")
 
       if [ "$HTTP_STATUS" -eq "200" ]; then
         echo "Template exists. Updating..."
@@ -182,7 +187,7 @@ resource "null_resource" "model_armor_template_provisioner" {
           -H "Authorization: Bearer $TOKEN" \
           -H "Content-Type: application/json; charset=utf-8" \
           -H "X-Goog-User-Project: ${var.project_id}" \
-          "https://modelarmor.googleapis.com/v1/projects/${var.project_id}/locations/${var.region}/templates/${var.template_id}?updateMask=filter_config,template_metadata" \
+          "https://modelarmor.${var.region}.rep.googleapis.com/v1/projects/${var.project_id}/locations/${var.region}/templates/${var.template_id}?updateMask=filter_config,template_metadata" \
           -d @${local_file.model_armor_spec.filename})
         echo "$RESPONSE"
       else
@@ -191,7 +196,7 @@ resource "null_resource" "model_armor_template_provisioner" {
           -H "Authorization: Bearer $TOKEN" \
           -H "Content-Type: application/json; charset=utf-8" \
           -H "X-Goog-User-Project: ${var.project_id}" \
-          "https://modelarmor.googleapis.com/v1/projects/${var.project_id}/locations/${var.region}/templates?templateId=${var.template_id}" \
+          "https://modelarmor.${var.region}.rep.googleapis.com/v1/projects/${var.project_id}/locations/${var.region}/templates?templateId=${var.template_id}" \
           -d @${local_file.model_armor_spec.filename})
         echo "$RESPONSE"
         if echo "$RESPONSE" | grep -q 'HTTP_CODE:200'; then
@@ -229,7 +234,7 @@ resource "google_logging_project_sink" "fsi_audit_sink" {
   name                   = "fsi-india-grc-audit-sink"
   project                = var.project_id
   destination            = "logging.googleapis.com/projects/${var.project_id}/locations/${var.region}/buckets/${google_logging_project_bucket_config.fsi_audit_bucket[0].bucket_id}"
-  filter                 = "resource.type="audited_resource" OR jsonPayload.regulatory_frameworks:"RBI_MD_IT_2023" OR jsonPayload.regulatory_frameworks:"SEBI_CSCRF_2024""
+  filter                 = "resource.type=\"audited_resource\" OR jsonPayload.regulatory_frameworks:\"RBI_MD_IT_2023\" OR jsonPayload.regulatory_frameworks:\"SEBI_CSCRF_2024\""
   unique_writer_identity = true
 
   depends_on = [google_logging_project_bucket_config.fsi_audit_bucket]

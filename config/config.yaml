@@ -29,9 +29,9 @@ model_armor:
   enabled: true
   action_on_match: "BLOCK" # BLOCK, FORCE_ASK, WARN
   project_id: "stratosphere-461622"
-  location: "asia-south1" # asia-south1 (Mumbai), asia-south2 (Delhi), us-central1
+  location: "us-central1" # us-central1 (Argolis fully capable)
   template_id: "fsi-india-compliance-template"
-  endpoint: "modelarmor.googleapis.com" # Or custom regional endpoint
+  endpoint: "modelarmor.us-central1.rep.googleapis.com" # Regional REP endpoint
   mock_mode: false # Set true for local offline testing / CI
   fail_open_on_network_error: false # FSI compliance requires Fail-Closed (false)
   timeout_seconds: 5.0
